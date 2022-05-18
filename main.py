@@ -6,15 +6,31 @@ sys.path.insert(0, './db')
 from typing import List
 from schemas import Device
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 from modules.Api import Mikrotik
 from db.base import database
 from db.device import devices
 
- 
-
 app = FastAPI()
 
+
+origins = [
+    "http://localhost",
+    "http://localhost:8080",
+    "http://185.190.150.5:8080",
+    "http://185.190.150.5:8080/detail/"
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+ 
 @app.on_event("startup")
 async def startup():
     await database.connect()
@@ -27,7 +43,7 @@ async def shutdown():
 
        
 
-@app.get("/device", response_model=List[Device])
+@app.get("/api/device/list", response_model=List[Device])
 async def list_device():
     
     query = 'SELECT * FROM devices'
@@ -102,6 +118,14 @@ async def api_mikrotik_firewall_filter(id: int):
     rdb = await database.fetch_one(query)
     res = Mikrotik().ip_firewall_filter_info(rdb.ip, rdb.api_port, rdb.api_login, rdb.api_pass)
     return res
+
+@app.get("/api/device/mikrotik/firewall/address-list/{id}")
+async def api_mikrotik_firewall_address_list(id: int):
+    # id = {"id": id}
+    query = '''SELECT * FROM devices WHERE id=''' + str(id)
+    rdb = await database.fetch_one(query)
+    res = Mikrotik().ip_firewall_address_list_info(rdb.ip, rdb.api_port, rdb.api_login, rdb.api_pass)
+    return res    
 
 @app.get("/api/device/mikrotik/ip/route/{id}")
 async def api_mikrotik_route(id: int):

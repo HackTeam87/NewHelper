@@ -156,6 +156,22 @@ class Mikrotik:
         if AR == []:
             return('Empty Search Value')        
         return(AR) 
+
+
+    def ip_firewall_address_list_info(self, ip, api_port, api_login, api_passw):
+        api = connect(username=api_login, password=api_passw, host=ip, port=api_port)
+        #Flags: Flags: X - disabled, D - dynamic
+        list = Key('list')
+        address = Key('address')
+        dynamic = Key('dynamic')
+        disabled = Key('disabled')       
+
+        AR = []
+        for row in api.path('/ip/firewall/address-list').select(list, address,dynamic,disabled):
+            AR.append(row)
+        if AR == []:
+            return('Empty Search Value')        
+        return(AR)      
     
 
          
@@ -233,5 +249,5 @@ class Mikrotik:
         # SEQ HOST                                     SIZE TTL TIME  STATUS 
         #sent=4 received=4 packet-loss=0% min-rtt=0ms avg-rtt=0ms max-rtt=1ms
         p = api.path('/')
-        return(list(p('ping', **{'arp-ping': 'yes', 'interface': interface, 'address': address ,'count': '4'})))
+        return(list(p('ping', **{'arp-ping': 'yes', 'interface': interface, 'address': address ,'count': '3'})))
 
